@@ -1,0 +1,44 @@
+## .NET build output
+bin/
+obj/
+
+## Visual Studio
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.DotSettings.user
+
+## Rider / JetBrains
+.idea/
+*.DotSettings
+
+## VS Code
+.vscode/
+
+## User-specific settings
+*.userprefs
+
+## Logs
+logs/
+*.log
+
+## Environment & secrets — NEVER commit these
+.env
+.env.local
+.env.production
+.env.staging
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.*.local.json
+secrets.json
+
+## Docker
+nginx/certs/
+
+## Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml

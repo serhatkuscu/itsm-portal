@@ -1,0 +1,6 @@
+@Itsm.Api_HostAddress = http://localhost:5157
+
+GET {{Itsm.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

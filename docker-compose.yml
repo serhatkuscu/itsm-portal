@@ -1,0 +1,79 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/Itsm.Api/Dockerfile
+    container_name: itsm_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=itsmportal;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - ConnectionStrings__Redis=redis:6379
+      - JwtSettings__SecretKey=${JWT_SECRET_KEY}
+      - JwtSettings__Issuer=ItsmPortal
+      - JwtSettings__Audience=ItsmPortal
+      - JwtSettings__ExpiryMinutes=60
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - itsm_network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: itsm_postgres
+    environment:
+      - POSTGRES_DB=itsmportal
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - itsm_network
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: itsm_redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - itsm_network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: itsm_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - api
+    networks:
+      - itsm_network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  itsm_network:
+    driver: bridge
