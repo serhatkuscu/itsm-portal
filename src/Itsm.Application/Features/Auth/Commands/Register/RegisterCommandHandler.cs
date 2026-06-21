@@ -1,6 +1,7 @@
 using Itsm.Application.Abstractions;
 using Itsm.Application.Common;
 using Itsm.Domain.Entities;
+using Itsm.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +19,7 @@ internal sealed class RegisterCommandHandler(IAppDbContext db, IPasswordHasher p
             return Error.Custom("Auth.EmailTaken", "A user with this email already exists.");
 
         var hash = passwordHasher.Hash(request.Password);
-        var user = User.Create(request.FirstName, request.LastName, request.Email, hash, request.Role);
+        var user = User.Create(request.FirstName, request.LastName, request.Email, hash, UserRole.Requester);
 
         db.Users.Add(user);
         await db.SaveChangesAsync(cancellationToken);

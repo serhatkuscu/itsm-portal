@@ -8,8 +8,7 @@ public sealed record RegisterCommand(
     string FirstName,
     string LastName,
     string Email,
-    string Password,
-    UserRole Role = UserRole.Requester
+    string Password
 ) : IRequest<Result<RegisterResponse>>;
 
 public sealed record RegisterResponse(Guid UserId, string Email, string FullName);

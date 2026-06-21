@@ -70,10 +70,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.UseHangfireDashboard("/hangfire", new DashboardOptions
+if (app.Environment.IsDevelopment())
 {
-    Authorization = []
-});
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = []
+    });
+}
 
 RecurringJob.AddOrUpdate<SlaMonitoringJob>(
     "sla-monitoring",

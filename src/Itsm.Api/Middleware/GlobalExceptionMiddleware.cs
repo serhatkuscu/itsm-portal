@@ -5,7 +5,10 @@ using System.Text.Json;
 
 namespace Itsm.Api.Middleware;
 
-internal sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+internal sealed class GlobalExceptionMiddleware(
+    RequestDelegate next,
+    ILogger<GlobalExceptionMiddleware> logger,
+    IHostEnvironment env)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -45,14 +48,14 @@ internal sealed class GlobalExceptionMiddleware(RequestDelegate next, ILogger<Gl
         return context.Response.WriteAsync(JsonSerializer.Serialize(problem));
     }
 
-    private static Task WriteProblem(HttpContext context, Exception ex)
+    private Task WriteProblem(HttpContext context, Exception ex)
     {
         var problem = new ProblemDetails
         {
             Status = (int)HttpStatusCode.InternalServerError,
             Title = "An unexpected error occurred",
             Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-            Detail = ex.Message
+            Detail = env.IsDevelopment() ? ex.Message : null
         };
 
         context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

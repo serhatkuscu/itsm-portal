@@ -22,6 +22,9 @@ internal sealed class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.HasIndex(t => t.Priority);
         builder.HasIndex(t => t.IsSlaBreached);
         builder.HasIndex(t => t.DueDate);
+        builder.HasIndex(t => t.CreatedAt);
+        builder.HasIndex(t => new { t.RequesterId,   t.Status });
+        builder.HasIndex(t => new { t.AssignedToId,  t.Status });
 
         builder.HasMany(t => t.Comments)
             .WithOne(c => c.Ticket)
