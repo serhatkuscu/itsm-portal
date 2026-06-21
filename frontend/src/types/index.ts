@@ -82,3 +82,9 @@ export interface CreateTicketResponse {
   title: string;
   dueDate: string;
 }
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+export interface AgentOption {
+  id: string;
+  fullName: string;
+}
