@@ -7,7 +7,7 @@ namespace Itsm.Api.Controllers;
 
 [ApiController]
 [Route("api/dashboard")]
-[Authorize(Roles = "Admin,Agent")]
+[Authorize]
 public sealed class DashboardController(ISender sender) : ControllerBase
 {
     [HttpGet]
