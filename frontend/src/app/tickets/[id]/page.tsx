@@ -19,15 +19,28 @@ function formatDateTime(iso: string) {
 
 // Status transitions available per current status (Admin/Agent only)
 // endpoint: 'status' → POST /tickets/{id}/status
-// endpoint: 'close'  → POST /tickets/{id}/close
-const STATUS_ACTIONS: Record<string, { label: string; status: number; endpoint: 'status' | 'close'; color: string }[]> = {
-  Open:            [{ label: 'Start Working',       status: 2, endpoint: 'status', color: 'bg-yellow-500 hover:bg-yellow-600' }],
-  InProgress:      [
+// endpoint: 'close'  → POST /tickets/{id}/close   (Closed=5, Cancelled=6)
+// endpoint: 'reopen' → POST /tickets/{id}/reopen  (→ Open)
+const STATUS_ACTIONS: Record<string, { label: string; status: number; endpoint: 'status' | 'close' | 'reopen'; color: string }[]> = {
+  Open: [
+    { label: 'Start Working', status: 2, endpoint: 'status', color: 'bg-yellow-500 hover:bg-yellow-600' },
+    { label: 'Cancel Ticket', status: 6, endpoint: 'close',  color: 'bg-red-600    hover:bg-red-700'    },
+  ],
+  InProgress: [
     { label: 'Wait for Customer', status: 3, endpoint: 'status', color: 'bg-orange-500 hover:bg-orange-600' },
     { label: 'Mark Resolved',     status: 4, endpoint: 'status', color: 'bg-green-600  hover:bg-green-700'  },
+    { label: 'Cancel Ticket',     status: 6, endpoint: 'close',  color: 'bg-red-600    hover:bg-red-700'    },
   ],
-  WaitingCustomer: [{ label: 'Resume Working',      status: 2, endpoint: 'status', color: 'bg-yellow-500 hover:bg-yellow-600' }],
-  Resolved:        [{ label: 'Close Ticket',         status: 5, endpoint: 'close',  color: 'bg-gray-700   hover:bg-gray-800'   }],
+  WaitingCustomer: [
+    { label: 'Resume Working', status: 2, endpoint: 'status', color: 'bg-yellow-500 hover:bg-yellow-600' },
+    { label: 'Cancel Ticket',  status: 6, endpoint: 'close',  color: 'bg-red-600    hover:bg-red-700'    },
+  ],
+  Resolved: [
+    { label: 'Close Ticket',  status: 5, endpoint: 'close',  color: 'bg-gray-700   hover:bg-gray-800'   },
+    { label: 'Reopen Ticket', status: 1, endpoint: 'reopen', color: 'bg-indigo-600 hover:bg-indigo-700' },
+  ],
+  Closed:    [{ label: 'Reopen Ticket', status: 1, endpoint: 'reopen', color: 'bg-indigo-600 hover:bg-indigo-700' }],
+  Cancelled: [{ label: 'Reopen Ticket', status: 1, endpoint: 'reopen', color: 'bg-indigo-600 hover:bg-indigo-700' }],
 };
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -131,16 +144,15 @@ interface ActionsPanelProps {
   ticket:          TicketDetail;
   agents:          AgentOption[];
   role:            string;
-  userId:          string;
   actionLoading:   boolean;
   successMsg:      string;
   actionError:     string;
   onAssign:        (agentId: string) => void;
-  onChangeStatus:  (status: number, endpoint: 'status' | 'close') => void;
+  onChangeStatus:  (status: number, endpoint: 'status' | 'close' | 'reopen') => void;
 }
 
 function ActionsPanel({
-  ticket, agents, role, userId,
+  ticket, agents, role,
   actionLoading, successMsg, actionError,
   onAssign, onChangeStatus,
 }: ActionsPanelProps) {
@@ -149,14 +161,12 @@ function ActionsPanel({
   const isAdmin     = role === 'Admin';
   const isAgent     = role === 'Agent';
   const isRequester = role === 'Requester';
-  const isOwnTicket = ticket.requesterName !== undefined; // always true; ownership checked via userId vs requesterId
 
-  const statusActions = STATUS_ACTIONS[ticket.status] ?? [];
-  const canDoStatusActions = (isAdmin || isAgent) && !isClosed;
-  const canClose  = isRequester && !isClosed;   // Requester: close own ticket
+  const statusActions = (isAdmin || isAgent) ? (STATUS_ACTIONS[ticket.status] ?? []) : [];
+  const canDoStatusActions = statusActions.length > 0;
+  const canClose  = isRequester && !isClosed;
   const canAssign = isAdmin && !isClosed;
 
-  // Nothing to show
   if (!canDoStatusActions && !canClose && !canAssign && !successMsg && !actionError) return null;
 
   return (
@@ -242,7 +252,7 @@ function ActionsPanel({
           </div>
         )}
 
-        {isClosed && (
+        {isClosed && isRequester && (
           <p className="text-sm text-gray-400 italic">This ticket is in a terminal state — no further actions available.</p>
         )}
       </div>
@@ -317,10 +327,14 @@ export default function TicketDetailPage() {
     );
   }
 
-  function handleChangeStatus(status: number, endpoint: 'status' | 'close') {
-    const path    = endpoint === 'close' ? `/tickets/${params.id}/close` : `/tickets/${params.id}/status`;
-    const body    = endpoint === 'close' ? { status } : { status };
-    const success = endpoint === 'close' ? 'Ticket closed.' : 'Status updated.';
+  function handleChangeStatus(status: number, endpoint: 'status' | 'close' | 'reopen') {
+    const path    = endpoint === 'reopen' ? `/tickets/${params.id}/reopen`
+                  : endpoint === 'close'  ? `/tickets/${params.id}/close`
+                  :                         `/tickets/${params.id}/status`;
+    const body    = endpoint === 'reopen' ? undefined : { status };
+    const success = endpoint === 'reopen' ? 'Ticket reopened.'
+                  : endpoint === 'close'  ? 'Ticket closed.'
+                  :                         'Status updated.';
     handleAction(() => apiClient.post(path, body), success);
   }
 
@@ -434,7 +448,6 @@ export default function TicketDetailPage() {
                 ticket={ticket}
                 agents={agents}
                 role={userInfo.role}
-                userId={userInfo.id}
                 actionLoading={actionLoading}
                 successMsg={successMsg}
                 actionError={actionError}

@@ -24,7 +24,17 @@ internal sealed class CloseTicketCommandHandler(IAppDbContext db, ICurrentUser c
         if (ticket.IsClosed())
             return Error.Custom("Ticket.AlreadyClosed", "Ticket is already in a terminal state.");
 
-        if (currentUser.Role == UserRole.Requester && ticket.RequesterId != currentUser.Id)
+        if (request.TargetStatus == TicketStatus.Cancelled)
+        {
+            if (currentUser.Role == UserRole.Requester)
+                return Error.Unauthorized;
+            if (ticket.Status == TicketStatus.Resolved)
+                return Error.Custom("Ticket.InvalidTransition", "Cannot cancel a resolved ticket. Close it instead.");
+        }
+
+        if (request.TargetStatus == TicketStatus.Closed
+            && currentUser.Role == UserRole.Requester
+            && ticket.RequesterId != currentUser.Id)
             return Error.Unauthorized;
 
         var oldStatus = ticket.Status.ToString();

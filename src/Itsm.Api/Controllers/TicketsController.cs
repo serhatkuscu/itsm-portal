@@ -2,6 +2,7 @@ using Itsm.Application.Features.Tickets.Commands.AssignTicket;
 using Itsm.Application.Features.Tickets.Commands.ChangeStatus;
 using Itsm.Application.Features.Tickets.Commands.CloseTicket;
 using Itsm.Application.Features.Tickets.Commands.CreateTicket;
+using Itsm.Application.Features.Tickets.Commands.ReopenTicket;
 using Itsm.Application.Features.Tickets.Commands.UpdateTicket;
 using Itsm.Application.Features.Tickets.Queries.GetTicketById;
 using Itsm.Application.Features.Tickets.Queries.GetTickets;
@@ -84,6 +85,18 @@ public sealed class TicketsController(ISender sender) : ControllerBase
     public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeStatusRequest request, CancellationToken ct)
     {
         var result = await sender.Send(new ChangeStatusCommand(id, request.Status), ct);
+
+        return result.IsSuccess
+            ? NoContent()
+            : BadRequest(new ProblemDetails { Title = result.Error.Code, Detail = result.Error.Message });
+    }
+
+    [HttpPost("{id:guid}/reopen")]
+    [Authorize(Roles = "Admin,Agent")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ReopenTicket(Guid id, CancellationToken ct)
+    {
+        var result = await sender.Send(new ReopenTicketCommand(id), ct);
 
         return result.IsSuccess
             ? NoContent()
