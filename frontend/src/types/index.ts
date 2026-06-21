@@ -75,3 +75,10 @@ export interface AuditDetail {
   newValue: string | null;
   createdAt: string;
 }
+
+// ── Create Ticket ─────────────────────────────────────────────────────────────
+export interface CreateTicketResponse {
+  ticketId: string;
+  title: string;
+  dueDate: string;
+}

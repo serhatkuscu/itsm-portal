@@ -151,6 +151,15 @@ function TicketsPageContent() {
               </p>
             )}
           </div>
+          <Link
+            href="/tickets/new"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 active:bg-indigo-800 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Ticket
+          </Link>
         </div>
 
         {/* Content */}
