@@ -42,3 +42,10 @@ TestResults/
 coverage/
 *.coverage
 *.coveragexml
+
+## Frontend — covered by frontend/.gitignore but listed here for clarity
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.production
