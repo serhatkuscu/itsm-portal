@@ -65,6 +65,7 @@ public sealed class SlaMonitoringJob(AppDbContext db, ILogger<SlaMonitoringJob> 
         var approachingTickets = await db.Tickets
             .Where(t =>
                 !t.IsSlaBreached &&
+                !t.SlaWarningSent &&
                 t.DueDate >= now &&
                 t.DueDate <= warningThreshold &&
                 t.Status != TicketStatus.Closed &&
@@ -85,6 +86,8 @@ public sealed class SlaMonitoringJob(AppDbContext db, ILogger<SlaMonitoringJob> 
                 );
                 db.Notifications.Add(notification);
             }
+
+            ticket.MarkSlaWarningSent();
 
             logger.LogWarning("SLA approaching for ticket {TicketId}, {Minutes} minutes left", ticket.Id, minutesLeft);
         }

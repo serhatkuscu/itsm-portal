@@ -11,6 +11,7 @@ public sealed class Ticket : BaseEntity
     public TicketPriority Priority { get; private set; }
     public DateTime DueDate { get; private set; }
     public bool IsSlaBreached { get; private set; }
+    public bool SlaWarningSent { get; private set; }
     public DateTime? ResolvedAt { get; private set; }
     public DateTime? ClosedAt { get; private set; }
 
@@ -79,6 +80,12 @@ public sealed class Ticket : BaseEntity
     public void MarkSlaBreached()
     {
         IsSlaBreached = true;
+        SetUpdated();
+    }
+
+    public void MarkSlaWarningSent()
+    {
+        SlaWarningSent = true;
         SetUpdated();
     }
 

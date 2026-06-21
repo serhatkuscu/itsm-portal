@@ -16,6 +16,7 @@ internal sealed class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.Property(t => t.Priority).IsRequired();
         builder.Property(t => t.DueDate).IsRequired();
         builder.Property(t => t.IsSlaBreached).HasDefaultValue(false);
+        builder.Property(t => t.SlaWarningSent).HasDefaultValue(false);
 
         builder.HasIndex(t => t.Status);
         builder.HasIndex(t => t.Priority);
