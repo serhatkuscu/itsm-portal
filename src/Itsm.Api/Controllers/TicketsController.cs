@@ -1,4 +1,5 @@
 using Itsm.Application.Features.Tickets.Commands.AssignTicket;
+using Itsm.Application.Features.Tickets.Commands.ChangeStatus;
 using Itsm.Application.Features.Tickets.Commands.CloseTicket;
 using Itsm.Application.Features.Tickets.Commands.CreateTicket;
 using Itsm.Application.Features.Tickets.Commands.UpdateTicket;
@@ -77,6 +78,18 @@ public sealed class TicketsController(ISender sender) : ControllerBase
             : BadRequest(new ProblemDetails { Title = result.Error.Code, Detail = result.Error.Message });
     }
 
+    [HttpPost("{id:guid}/status")]
+    [Authorize(Roles = "Admin,Agent")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ChangeStatusRequest request, CancellationToken ct)
+    {
+        var result = await sender.Send(new ChangeStatusCommand(id, request.Status), ct);
+
+        return result.IsSuccess
+            ? NoContent()
+            : BadRequest(new ProblemDetails { Title = result.Error.Code, Detail = result.Error.Message });
+    }
+
     [HttpPost("{id:guid}/close")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> CloseTicket(Guid id, [FromBody] CloseTicketRequest request, CancellationToken ct)
@@ -91,4 +104,5 @@ public sealed class TicketsController(ISender sender) : ControllerBase
 
 public sealed record UpdateTicketRequest(string Title, string Description, TicketPriority Priority);
 public sealed record AssignTicketRequest(Guid AgentId);
+public sealed record ChangeStatusRequest(TicketStatus Status);
 public sealed record CloseTicketRequest(TicketStatus Status);
