@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Text;
@@ -16,7 +17,7 @@ namespace Itsm.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment env)
     {
         services.AddDbContext<AppDbContext>(options =>
             options.UseNpgsql(
@@ -31,7 +32,8 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUser, CurrentUserService>();
 
         AddJwtAuthentication(services, configuration);
-        AddHangfire(services, configuration);
+        if (env.IsDevelopment())
+            AddHangfire(services, configuration);
         AddRedis(services, configuration);
 
         return services;

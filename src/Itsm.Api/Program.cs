@@ -19,7 +19,7 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -76,14 +76,14 @@ if (app.Environment.IsDevelopment())
     {
         Authorization = []
     });
-}
 
-RecurringJob.AddOrUpdate<SlaMonitoringJob>(
-    "sla-monitoring",
-    "sla",
-    job => job.ExecuteAsync(),
-    "*/5 * * * *",
-    new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+    RecurringJob.AddOrUpdate<SlaMonitoringJob>(
+        "sla-monitoring",
+        "sla",
+        job => job.ExecuteAsync(),
+        "*/5 * * * *",
+        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+}
 
 using (var scope = app.Services.CreateScope())
 {
