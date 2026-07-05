@@ -2,6 +2,7 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { apiClient } from '@/lib/api-client';
 import { auth } from '@/lib/auth';
 import type { LoginResponse } from '@/types';
@@ -97,6 +98,13 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
+
+        <p className="text-center text-sm text-gray-500 mt-6">
+          Don&apos;t have an account?{' '}
+          <Link href="/register" className="text-indigo-600 font-medium hover:text-indigo-700">
+            Create an account
+          </Link>
+        </p>
       </div>
     </div>
   );
