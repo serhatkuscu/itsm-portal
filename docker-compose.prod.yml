@@ -62,24 +62,11 @@ services:
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot:ro
-    # Reload every 6h so renewed certificates are picked up without downtime
-    command: /bin/sh -c 'while :; do sleep 6h; nginx -s reload; done & exec nginx -g "daemon off;"'
     depends_on:
       - api
       - frontend
     networks:
       - itsm_network
-    restart: unless-stopped
-
-  certbot:
-    image: certbot/certbot:latest
-    container_name: itsm_certbot
-    volumes:
-      - /etc/letsencrypt:/etc/letsencrypt
-      - /var/www/certbot:/var/www/certbot
-    # Attempts renewal every 12h; certbot only renews when < 30 days remain
-    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done'
     restart: unless-stopped
 
 volumes:
